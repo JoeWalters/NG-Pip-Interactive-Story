@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Little Star Who Forgot How to Shine</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
+            background: #0f172a;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, #090d16 0%, #1e1b4b 60%, #311042 100%);
+        }
+        /* Background Elements */
+        .moon {
+            position: absolute;
+            top: 40px;
+            right: 50px;
+            width: 70px;
+            height: 70px;
+            background: #fef08a;
+            border-radius: 50%;
+            box-shadow: 0 0 40px #fde047;
+            cursor: pointer;
+        }
+        .moon::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -10px;
+            width: 70px;
+            height: 70px;
+            background: #1e1b4b;
+            border-radius: 50%;
+        }
+        .bg-star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite alternate ease-in-out;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Stage Area for Story & Mini-Games */
+        #stage {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        #character-display {
+            font-size: 100px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
+        }
+        #character-display:active {
+            transform: scale(1.2);
+        }
+
+        /* Mini-Game Containers */
+        .minigame-box {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .cloud-row, .bucket-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .interactive-item {
+            font-size: 55px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .interactive-item:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* UI Control Panel (Bedtime Warm Theme) */
+        #ui-panel {
+            width: 100%;
+            height: 28vh;
+            min-height: 170px;
+            background: rgba(30, 27, 75, 0.95);
+            border-top: 4px solid #a78bfa;
+            border-radius: 30px 30px 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        #story-text {
+            font-size: clamp(18px, 3.5vw, 24px);
+            color: #f3f4f6;
+            text-align: center;
+            margin: 0 0 15px 0;
+            font-weight: normal;
+            line-height: 1.4;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+        }
+        .btn-container {
+            display: flex;
+            gap: 20px;
+        }
+        .story-btn {
+            background-color: #7c3aed;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #5b21b6;
+            transition: all 0.1s ease;
+            font-family: inherit;
+        }
+        .story-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #5b21b6;
+        }
+
+        /* Top Bar Controls */
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+        }
+        .control-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Floating Dream Particles */
+        .dream-particle {
+            position: absolute;
+            pointer-events: none;
+            animation: driftUp 3s linear forwards;
+            font-size: 24px;
+            z-index: 50;
+        }
+        @keyframes driftUp {
+            0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-150px) scale(1.2) rotate(180deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="top-controls">
+        <button class="control-btn" id="sound-toggle" onclick="toggleSound()">🔊</button>
+        <button class="control-btn" onclick="toggleLullaby()" title="Play Lullaby">🎶</button>
+    </div>
+
+    <div class="moon" onclick="triggerMoon()"></div>
+    <!-- Random Background Stars -->
+    <div class="bg-star" style="top: 80px; left: 60px; width: 4px; height: 4px; animation-delay: 0.5s;"></div>
+    <div class="bg-star" style="top: 150px; left: 180px; width: 6px; height: 6px; animation-delay: 1.2s;"></div>
+    <div class="bg-star" style="top: 60px; left: 40%; width: 5px; height: 5px; animation-delay: 0.2s;"></div>
+    <div class="bg-star" style="top: 190px; left: 75%; width: 4px; height: 4px; animation-delay: 1.8s;"></div>
+
+    <div id="stage">
+        <!-- Normal Character Story View -->
+        <div id="character-display" onclick="pokeCharacter()">⭐</div>
+
+        <!-- Mini-Game 1: Tickle/Wake up the sleepy star -->
+        <div id="minigame-1" class="minigame-box">
+            <div style="font-size: 70px;">🌟😴</div>
+            <p style="color: #ddd; font-size: 16px; margin: 5px;">Tap the star 3 times to wake it up gently!</p>
+            <div id="wake-counter" style="font-size: 24px; color: #fde047; font-weight: bold;">Taps left: 3</div>
+        </div>
+
+        <!-- Mini-Game 2: Clear the sleepy clouds -->
+        <div id="minigame-2" class="minigame-box">
+            <p style="color: #ddd; font-size: 16px; margin: 5px;">Swipe/Tap the dark clouds away to let light through!</p>
+            <div class="cloud-row">
+                <div class="interactive-item" onclick="clearCloud(this)">☁️</div>
+                <div class="interactive-item" onclick="clearCloud(this)">🌧️</div>
+                <div class="interactive-item" onclick="clearCloud(this)">☁️</div>
+            </div>
+        </div>
+
+        <!-- Mini-Game 3: Catch dream drops / Moonbeams -->
+        <div id="minigame-3" class="minigame-box">
+            <p style="color: #ddd; font-size: 16px; margin: 5px;">Catch 3 glowing star-sparkles!</p>
+            <div class="bucket-row" id="sparkle-container">
+                <div class="interactive-item" onclick="catchSparkle(this)">✨</div>
+                <div class="interactive-item" onclick="catchSparkle(this)">✨</div>
+                <div class="interactive-item" onclick="catchSparkle(this)">✨</div>
+            </div>
+        </div>
+
+        <!-- Mini-Game 4: Tuck in / Goodnight hugs -->
+        <div id="minigame-4" class="minigame-box">
+            <div style="font-size: 80px;" onclick="tuckInStar()">🛏️⭐</div>
+            <p style="color: #ddd; font-size: 16px; margin: 5px;">Tap the star to tuck it into its cloud bed!</p>
+        </div>
+    </div>
+
+    <div id="ui-panel">
+        <div id="story-text">Once upon a time, high up in the velvety night sky, lived a little star named Pip. Pip was so tired. Tap Next to begin.</div>
+        <div class="btn-container">
+            <button class="story-btn" id="next-btn" onclick="nextPage()">Next Page 🌙</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Audio Context Setup for Gentle Bedtime Tones & Lullaby
+    let audioCtx = null;
+    let soundEnabled = true;
+    let lullabyInterval = null;
+    let isLullabyPlaying = false;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function playTone(freq, type, duration, volume=0.1) {
+        if (!soundEnabled) return;
+        initAudio();
+        try {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+    }
+
+    function playChime(note = 523.25) {
+        playTone(note, 'sine', 0.8, 0.08);
+    }
+
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        document.getElementById('sound-toggle').innerText = soundEnabled ? '🔊' : '🔇';
+        if (!soundEnabled && isLullabyPlaying) toggleLullaby();
+    }
+
+    // Soft Ambient Lullaby Generator (Twinkle Twinkle inspired notes)
+    const lullabyNotes = [261.63, 261.63, 392.00, 392.00, 440.00, 440.00, 392.00];
+    let noteIndex = 0;
+
+    function toggleLullaby() {
+        isLullabyPlaying = !isLullabyPlaying;
+        if (isLullabyPlaying) {
+            initAudio();
+            lullabyInterval = setInterval(() => {
+                if (!soundEnabled) return;
+                playTone(lullabyNotes[noteIndex], 'sine', 1.5, 0.05);
+                noteIndex = (noteIndex + 1) % lullabyNotes.length;
+            }, 1200);
+        } else {
+            clearInterval(lullabyInterval);
+        }
+    }
+
+    // Story Pages Structure with Integrated Activities
+    const storyPages = [
+        {
+            text: "Once upon a time, high up in the velvety night sky, lived a little star named Pip. Pip was so sleepy.",
+            type: "story",
+            char: "⭐"
+        },
+        {
+            text: "Oh no! Pip fell fast asleep behind a cloud and forgot how to shine. Can you wake Pip up with gentle taps?",
+            type: "minigame-1",
+            char: ""
+        },
+        {
+            text: "Yawn! Pip stretched out. But fluffy night clouds were blocking the view. Tap the clouds to brush them away!",
+            type: "minigame-2",
+            char: ""
+        },
+        {
+            text: "The sky cleared up! Magical sleep sparkles began to float around. Catch the sparkles to help Pip glow.",
+            type: "minigame-3",
+            char: ""
+        },
+        {
+            text: "Pip glowed bright golden yellow, lighting up the entire galaxy for all the children down below.",
+            type: "story",
+            char: "🌟"
+        },
+        {
+            text: "Now it's time for Pip to rest in a cozy cloud bed. Tap Pip to tuck them in for a wonderful sleep.",
+            type: "minigame-4",
+            char: ""
+        },
+        {
+            text: "With a soft sigh, Pip twinkled goodnight. Sweet dreams, little star... and sweet dreams to you, too. 🌙💤",
+            type: "story",
+            char: "🌙✨"
+        }
+    ];
+
+    let currentPage = 0;
+    let wakeTapsLeft = 3;
+    let cloudsCleared = 0;
+    let sparklesCaught = 0;
+
+    function nextPage() {
+        playChime(440);
+        currentPage++;
+        if (currentPage >= storyPages.length) {
+            currentPage = 0; // Loop back or restart experience
+        }
+        loadPageState();
+    }
+
+    function loadPageState() {
+        const page = storyPages[currentPage];
+        document.getElementById('story-text').innerText = page.text;
+
+        // Hide all views first
+        document.getElementById('character-display').style.display = 'none';
+        document.getElementById('minigame-1').style.display = 'none';
+        document.getElementById('minigame-2').style.display = 'none';
+        document.getElementById('minigame-3').style.display = 'none';
+        document.getElementById('minigame-4').style.display = 'none';
+
+        if (page.type === 'story') {
+            const charEl = document.getElementById('character-display');
+            charEl.innerText = page.char;
+            charEl.style.display = 'block';
+        } else if (page.type === 'minigame-1') {
+            wakeTapsLeft = 3;
+            document.getElementById('wake-counter').innerText = "Taps left: 3";
+            document.getElementById('minigame-1').style.display = 'flex';
+        } else if (page.type === 'minigame-2') {
+            cloudsCleared = 0;
+            document.getElementById('minigame-2').style.display = 'flex';
+            // Reset cloud items visibility
+            document.querySelectorAll('.cloud-row .interactive-item').forEach(el => el.style.visibility = 'visible');
+        } else if (page.type === 'minigame-3') {
+            sparklesCaught = 0;
+            document.getElementById('minigame-3').style.display = 'flex';
+            document.querySelectorAll('#sparkle-container .interactive-item').forEach(el => el.style.visibility = 'visible');
+        } else if (page.type === 'minigame-4') {
+            document.getElementById('minigame-4').style.display = 'flex';
+        }
+    }
+
+    // Mini-game interaction handlers
+    // 1. Wake Star handler
+    document.getElementById('minigame-1').addEventListener('click', () => {
+        if (wakeTapsLeft > 0) {
+            wakeTapsLeft--;
+            playChime(523.25 + (3 - wakeTapsLeft) * 100);
+            document.getElementById('wake-counter').innerText = wakeTapsLeft > 0 ? `Taps left: ${wakeTapsLeft}` : "Pip is awake! ✨";
+            createParticle(event.clientX, event.clientY, '✨');
+            if (wakeTapsLeft === 0) {
+                setTimeout(nextPage, 1000);
+            }
+        }
+    });
+
+    // 2. Clear Cloud handler
+    function clearCloud(element) {
+        playChime(659.25);
+        element.style.visibility = 'hidden';
+        cloudsCleared++;
+        createParticle(event.clientX, event.clientY, '💨');
+        if (cloudsCleared >= 3) {
+            setTimeout(nextPage, 1000);
+        }
+    }
+
+    // 3. Catch Sparkle handler
+    function catchSparkle(element) {
+        playChime(783.99);
+        element.style.visibility = 'hidden';
+        sparklesCaught++;
+        createParticle(event.clientX, event.clientY, '⭐');
+        if (sparklesCaught >= 3) {
+            setTimeout(nextPage, 1000);
+        }
+    }
+
+    // 4. Tuck in star handler
+    function tuckInStar() {
+        playChime(392.00);
+        createParticle(window.innerWidth / 2, window.innerHeight / 2, '🛌💤');
+        setTimeout(nextPage, 1200);
+    }
+
+    // General character poke / moon tap effects
+    function pokeCharacter() {
+        playChime(587.33);
+        createParticle(window.innerWidth / 2, window.innerHeight / 2, '💫');
+    }
+
+    function triggerMoon() {
+        playChime(349.23);
+        createParticle(window.innerWidth - 80, 70, '🌙');
+    }
+
+    function createParticle(x, y, symbol) {
+        const particle = document.createElement('div');
+        particle.className = 'dream-particle';
+        particle.innerText = symbol;
+        particle.style.left = (x - 15) + 'px';
+        particle.style.top = (y - 30) + 'px';
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 3000);
+    }
+</script>
+
+</body>
+</html>
