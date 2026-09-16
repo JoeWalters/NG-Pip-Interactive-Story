@@ -132,6 +132,20 @@
   @keyframes balloon { 0%{transform:scale(1)} 35%{transform:scale(1.45)} 55%{transform:scale(1.2)} 70%{transform:scale(1.28)} 85%{transform:scale(1.05)} 100%{transform:scale(1)} }
   .balloon { animation: balloon .95s ease-in-out; }
 
+  /* THE END title */
+  h1.endtitle {
+    position: absolute; top: 4vh; left: 0; right: 0; margin: 0 auto;
+    width: max-content; text-align: center;
+    font-size: clamp(48px, 10vw, 110px); font-weight: 900; letter-spacing: 4px;
+    color: #fff; text-shadow: 0 4px 0 #c96b1e, 0 8px 16px rgba(0,0,0,.28);
+    pointer-events: none; z-index: 5;
+  }
+
+  /* Balloons pop */
+  .balloon { transform-box: fill-box; transform-origin: 50% 50%; cursor: pointer; }
+  @keyframes popBalloon { 0%{transform:scale(1); opacity:1} 60%{transform:scale(1.5); opacity:.9} 100%{transform:scale(1.9); opacity:0} }
+  .balloon.pop { animation: popBalloon .45s ease-in forwards; }
+
   /* Tree leaves rustle */
   .tree-wrap { transform-box: fill-box; transform-origin: 50% 100%; cursor: pointer; }
   @keyframes rustle { 0%{transform:rotate(0)} 15%{transform:rotate(-1.7deg) translateX(-3px)} 30%{transform:rotate(1.5deg) translateX(3px)} 45%{transform:rotate(-1.1deg)} 60%{transform:rotate(.9deg)} 75%{transform:rotate(-.5deg)} 100%{transform:rotate(0)} }
@@ -509,6 +523,13 @@
       <circle cx="45" cy="45" r="34" fill="#ffe9a8"/>
       <circle cx="60" cy="38" r="28" fill="#2b2b5e"/>
     </symbol>
+
+    <!-- Balloon -->
+    <symbol id="balloon" viewBox="0 0 60 90">
+      <ellipse cx="30" cy="40" rx="22" ry="30" fill="#ff6b6b" stroke="#c94545" stroke-width="3"/>
+      <ellipse cx="30" cy="14" rx="8" ry="3" fill="#ff8a8a"/>
+      <path d="M30 70 L30 88" stroke="#888" stroke-width="2"/>
+    </symbol>
   </defs>
 </svg>
 
@@ -560,6 +581,7 @@
   <div id="p5" class="page bg-day"><div class="scene"></div><div class="story"></div></div>
   <div id="p6" class="page bg-night"><div class="scene"></div><div class="story"></div></div>
   <div id="p7" class="page bg-night"><div class="scene"></div><div class="story"></div></div>
+  <div id="p8" class="page bg-day"><h1 class="endtitle">THE END</h1><div class="scene"></div><div class="story"></div></div>
 
   <!-- Navigation -->
   <button id="backBtn" class="navbtn">&#9664;</button>
@@ -688,7 +710,21 @@
     '<g class="star"><use href="#dot" x="120" y="70" width="26" height="22"/></g><g class="star" style="animation-delay:-.8s"><use href="#dot" x="210" y="120" width="26" height="22"/></g><g class="star" style="animation-delay:-1.4s"><use href="#dot" x="330" y="60" width="26" height="22"/></g>' +
     TREE +
     '<g id="pip7" class="pip7"><use href="#cocoon" x="560" y="130" width="160" height="260"/></g>' +
-    '<g id="pipfly7" class="pipfly7"><use href="#pipfly" x="590" y="150" width="110" height="76"/></g>'
+    '<g id="pipfly7" class="pipfly7"><use href="#pipfly" x="590" y="150" width="110" height="76"/></g>',
+    // THE END: balloons to pop + bugs to click
+    '<use href="#sun" x="70" y="44" width="112" height="112"/>' +
+    '<g class="cloud"><use href="#cloud" x="150" y="70" width="160" height="76"/></g>' +
+    '<g class="cloud" style="animation-delay:-3s"><use href="#cloud" x="760" y="96" width="150" height="70"/></g>' +
+    '<g class="balloon"><use href="#balloon" x="100" y="240" width="60" height="90"/></g>' +
+    '<g class="balloon"><use href="#balloon" x="250" y="200" width="60" height="90"/></g>' +
+    '<g class="balloon"><use href="#balloon" x="420" y="250" width="60" height="90"/></g>' +
+    '<g class="balloon"><use href="#balloon" x="600" y="210" width="60" height="90"/></g>' +
+    '<g class="balloon"><use href="#balloon" x="780" y="250" width="60" height="90"/></g>' +
+    '<g class="firefly"><use href="#firefly" x="150" y="480" width="48" height="40" class="glow"/></g>' +
+    '<g class="firefly"><use href="#firefly" x="820" y="470" width="48" height="40" class="glow"/></g>' +
+    '<g class="ladybug5"><use href="#dot" x="120" y="420" width="50" height="42"/></g>' +
+    '<g class="ladybug5"><use href="#dot" x="900" y="430" width="50" height="42"/></g>' +
+    '<g id="butterflyEnd" class="butterfly5"><use href="#butterfly" x="300" y="430" width="70" height="54"/></g>'
   ];
 
   // Fill page scenes and story
@@ -699,6 +735,10 @@
     STORY[i].forEach(function(line){ storyHtml += '<p>'+line+'</p>'; });
     p.querySelector('.story').innerHTML = storyHtml;
   }
+  // THE END page
+  var p8 = document.getElementById('p8');
+  p8.querySelector('.scene').innerHTML = '<svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">'+scenes[7]+'</svg>';
+  p8.querySelector('.story').style.display = 'none';
 
   // ---------- Audio (Web Audio API, synthesized) ----------
   var ac = null;
@@ -845,6 +885,10 @@
   function playStarFall(){ initAudio(); if(!ac) return; var t=ac.currentTime;
     tone('sine',880,440,t,0.5,0.14);
     tone('sine',660,330,t+0.3,0.4,0.10);
+  }
+  function playPop(){ initAudio(); if(!ac) return; var t=ac.currentTime;
+    noise(t,0.08,0.4,'highpass',2000);
+    tone('triangle',900,300,t,0.15,0.2);
   }
 
   // ---------- Cover interactions ----------
@@ -1068,6 +1112,18 @@
     if(pipfly7){ pipfly7.classList.remove('fly'); void pipfly7.offsetWidth; pipfly7.classList.add('fly'); }
     setTimeout(function(){ if(pipfly7){ pipfly7.classList.remove('fly'); } pip7.classList.remove('hidden'); },3600);
   }); }
+  // THE END: butterfly flies back/forth on tap; balloons pop on tap
+  var butterflyEnd = document.getElementById('butterflyEnd');
+  if(butterflyEnd){ butterflyEnd.addEventListener('click', function(e){ e.preventDefault(); playChirp();
+    butterflyEnd.classList.remove('fly'); void butterflyEnd.offsetWidth; butterflyEnd.classList.add('fly');
+    setTimeout(function(){ butterflyEnd.classList.remove('fly'); },1650);
+  }); }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('.balloon') : null;
+    if(!b) return;
+    e.preventDefault(); playPop();
+    b.classList.add('pop');
+  });
 
   // Title: balloon up then back to normal size
   var titleEl = document.querySelector('#cover h1.title');
@@ -1090,7 +1146,7 @@
   var current = 0; // 0 = cover
   var dotsWrap = document.getElementById('dots');
   var dotEls = [];
-  for(var i=0;i<7;i++){
+  for(var i=0;i<8;i++){
     var d = document.createElement('div'); d.className='dot'; d.dataset.p = i+1; dotsWrap.appendChild(d); dotEls.push(d);
   }
   var backBtn = document.getElementById('backBtn');
@@ -1099,12 +1155,12 @@
   function show(n){
     current = n;
     Array.prototype.forEach.call(pages, function(p){ p.classList.remove('active'); });
-    document.getElementById(n===0 ? 'cover' : 'p'+n).classList.add('active');
+    document.getElementById(n===0 ? 'cover' : (n===8 ? 'p8' : 'p'+n)).classList.add('active');
     Array.prototype.forEach.call(dotEls, function(d){ d.classList.toggle('on', (+d.dataset.p)===n); });
     backBtn.style.display = (n===0) ? 'none' : 'block';
     nextBtn.style.display = (n===0) ? 'none' : 'block';
-    nextBtn.classList.toggle('restart', n===7);
-    nextBtn.innerHTML = (n===7) ? '&#8634;' : '&#9654;';
+    nextBtn.classList.toggle('restart', n===8);
+    nextBtn.innerHTML = (n===8) ? '&#8634;' : '&#9654;';
   }
 
   var playBtn = document.getElementById('playBtn');
@@ -1114,7 +1170,7 @@
 
   backBtn.addEventListener('click', function(e){ e.preventDefault(); playPage(); show(Math.max(current-1,0)); });
   nextBtn.addEventListener('click', function(e){ e.preventDefault(); playPage();
-    if(current>=7){ show(0); } else { show(current+1); }
+    if(current>=8){ show(0); } else { show(current+1); }
   });
   Array.prototype.forEach.call(dotEls, function(d){
     d.addEventListener('click', function(){ playPage(); show(+d.dataset.p); });
